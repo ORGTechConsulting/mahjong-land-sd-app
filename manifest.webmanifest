@@ -1,7 +1,7 @@
 {
   "name": "Mahjong Land SD",
   "short_name": "Mahjong Land",
-  "description": "American Mahjong cheat sheet, Joker practice and class booking with Luli.",
+  "description": "For Luli's students: American Mahjong cheat sheet, Joker practice and class booking.",
   "id": "/",
   "start_url": "/?source=app",
   "scope": "/",

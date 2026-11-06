@@ -196,6 +196,27 @@
   .links a { display: flex; justify-content: space-between; align-items: center; gap: 10px; background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; text-decoration: none; font-weight: 600; color: var(--green); }
   .links a span:last-child { color: var(--gold); }
 
+  /* ---------- Sign-in gate ---------- */
+  body.locked main, body.locked .tabbar { display: none; }
+  .gate { max-width: 440px; margin: 0 auto; padding: 28px max(16px, env(safe-area-inset-right, 0px)) 40px max(16px, env(safe-area-inset-left, 0px)); }
+  .gate-card { background: #fff; border: 1px solid var(--line); border-radius: 20px; padding: 26px 20px; display: grid; gap: 14px; box-shadow: 0 6px 0 #efe6d2; text-align: center; }
+  .gate-card > img { justify-self: center; border-radius: 50%; }
+  .gate-card h1 { font-family: var(--serif); font-weight: 800; color: var(--green); font-size: clamp(1.6rem, 7vw, 2rem); line-height: 1.1; }
+  .gate-card h1 em { font-style: italic; color: var(--pink-deep); }
+  .gate form { display: grid; gap: 10px; text-align: left; }
+  .gate label { font-weight: 600; font-size: .9rem; }
+  .gate input { font: inherit; font-size: 1.05rem; width: 100%; padding: 12px 14px; border: 1.5px solid var(--gold); border-radius: 12px; background: var(--cream); color: var(--ink); }
+  .gate input:focus { outline: 3px solid var(--gold-light); outline-offset: 1px; }
+  .gate #code { font-size: 1.5rem; letter-spacing: .3em; text-align: center; font-variant-numeric: tabular-nums; }
+  .gate .btn:disabled { opacity: .6; cursor: default; }
+  .gate .linkbtn { justify-self: center; }
+  .gate-msg { font-size: .92rem; border-radius: 10px; padding: 10px 12px; background: #fbeaea; border: 1px solid #efc4c0; color: var(--no); text-align: left; }
+  .gate-msg:empty { display: none; }
+  .gate-msg.ok { background: #e6f2ec; border-color: #b6d9c6; color: var(--green-dark); }
+  .gate .note a { color: var(--green); font-weight: 600; }
+  .loading-content { text-align: center; color: var(--muted); padding: 40px 0; }
+  .account { display: flex; justify-content: center; align-items: center; gap: 6px; flex-wrap: wrap; font-size: .86rem; color: var(--muted); }
+
   /* ---------- Tab bar ---------- */
   .tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 25; background: #fff; border-top: 1px solid var(--line);
     padding: 6px max(8px, env(safe-area-inset-right, 0px)) calc(6px + env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px)); }
@@ -207,7 +228,7 @@
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 </head>
-<body>
+<body class="locked">
 
 <header class="top">
   <div class="top-in">
@@ -218,6 +239,30 @@
     </div>
   </div>
 </header>
+
+<!-- ================= SIGN IN (students on Luli's list only) ================= -->
+<section class="gate" id="gate" aria-labelledby="gate-title" hidden>
+  <div class="gate-card">
+    <img src="/icons/icon-192.png" alt="" width="72" height="72">
+    <p class="kicker" data-t="gateKicker"></p>
+    <h1 id="gate-title" data-t-html="gateTitle"></h1>
+    <p class="lede" data-t="gateLede"></p>
+    <form id="email-form" novalidate>
+      <label for="email" data-t="emailLabel"></label>
+      <input id="email" name="email" type="email" autocomplete="email" inputmode="email" autocapitalize="off" spellcheck="false" required>
+      <button class="btn block" type="submit" id="email-btn" data-t="sendCode"></button>
+    </form>
+    <form id="code-form" novalidate hidden>
+      <label for="code" id="code-label"></label>
+      <input id="code" name="code" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]*" maxlength="10" required>
+      <button class="btn block" type="submit" id="code-btn" data-t="signIn"></button>
+      <button class="linkbtn" type="button" id="code-resend" data-t="resend"></button>
+      <button class="linkbtn" type="button" id="code-back" data-t="useOther"></button>
+    </form>
+    <p class="gate-msg" id="gate-msg" role="alert" aria-live="assertive"></p>
+    <p class="note" data-t-html="gateHelp"></p>
+  </div>
+</section>
 
 <main>
   <!-- ================= CHEAT SHEET ================= -->
@@ -240,128 +285,7 @@
       <nav class="jump" aria-label="Sections">
         <a href="#en-miss">Easy to miss</a><a href="#en-set">Tiles</a><a href="#en-charleston">Charleston</a><a href="#en-turn">A turn</a><a href="#en-card">The card</a><a href="#en-pays">Who pays</a><a href="#en-strategy">Strategy</a>
       </nav>
-      <div class="sheet"><section>
-  <div class="wrap">
-    <div class="band" id="en-miss">
-      <h2>Rules that are easy to miss</h2>
-      <p class="sub">These come up at almost every table, even with experienced players.</p>
-      <div class="misses">
-        <div class="miss"><span class="k">Calling</span><h3>No calling for a pair</h3><p>Call a discard only to finish a pung, kong, quint or sextet, or to declare Mahjong. A tile that completes a single or pair can be called only for Mahjong.</p></div>
-        <div class="miss"><span class="k">Calling</span><h3>The window closes fast</h3><p>A discard can be called until the next player has drawn and racked a tile. Say "Call" clearly, then take the tile.</p></div>
-        <div class="miss"><span class="k">Calling</span><h3>Mahjong beats an exposure</h3><p>If two players call the same tile, Mahjong wins. If both want it for the same reason, the player next in turn after the discarder gets it.</p></div>
-        <div class="miss"><span class="k">Jokers</span><h3>Redeem Jokers from any exposure</h3><p>On your turn, swap the matching tile for a Joker in anyone's exposed group, yours included. You can make several swaps in one turn.</p></div>
-        <div class="miss"><span class="k">Jokers</span><h3>A discarded Joker is dead</h3><p>Nobody can call a Joker from the discards, and a discard can't be used to swap for an exposed Joker. Only tiles from your rack redeem Jokers.</p></div>
-        <div class="miss"><span class="k">Jokers</span><h3>Never in a single or pair</h3><p>Jokers fill groups of three or more only. They can't stand in for a pair, a single tile, or one tile of NEWS or a year like 2026.</p></div>
-        <div class="miss"><span class="k">Charleston</span><h3>Jokers can't be passed</h3><p>Not in the Charleston and not in the courtesy pass. Flowers can be passed.</p></div>
-        <div class="miss"><span class="k">Charleston</span><h3>The blind pass</h3><p>On the last pass of each Charleston (first Left, second Right) you may pass along 1 to 3 of the tiles you just received without looking at them.</p></div>
-        <div class="miss"><span class="k">Charleston</span><h3>One player can stop the second Charleston</h3><p>The first Charleston is required. Any one player may decline the second. In the courtesy pass, the player who wants fewer tiles sets the number.</p></div>
-        <div class="miss"><span class="k">The card</span><h3>C means concealed</h3><p>On a hand marked C you can't call discards for exposures. You may call only the final tile, for Mahjong.</p></div>
-        <div class="miss"><span class="k">The card</span><h3>Colors mean suits, not specific suits</h3><p>One color in a hand means one suit, three colors mean three different suits. A dragon in the same color as a number matches that suit.</p></div>
-        <div class="miss"><span class="k">The card</span><h3>Soap counts as zero</h3><p>In year hands such as 2026, the White Dragon (Soap) is the 0. Flowers are interchangeable, so any Flower matches any other.</p></div>
-        <div class="miss"><span class="k">Exposures</span><h3>A quint needs a Joker</h3><p>There are only four of each tile, so a quint or sextet needs Jokers. Flowers are the exception, with eight in the set.</p></div>
-        <div class="miss"><span class="k">Dead hand</span><h3>A dead hand still pays</h3><p>A hand goes dead when it has the wrong tile count or its exposures can't match any hand on the card. That player stops playing but still pays if someone else wins.</p></div>
-        <div class="miss"><span class="k">Scoring</span><h3>Jokerless doubles the value</h3><p>A winning hand with no Jokers is worth double. Hands that can never use Jokers, such as Singles and Pairs, don't get the bonus.</p></div>
-        <div class="miss"><span class="k">Scoring</span><h3>Verify before you declare</h3><p>Check your 14 tiles against the card before saying Mahjong. Everyone should check it before tiles are mixed.</p></div>
-      </div>
-    </div>
-  </div>
-</section>
-
-
-<section>
-  <div class="wrap grid">
-
-    <div class="panel" id="en-set">
-      <h2>The set<span class="tag">152 tiles</span></h2>
-      <div class="tiles">
-        <div class="tile-row"><div class="what"><span class="chip">B</span><div>Bams (bamboo) 1&#8211;9<small>The 1 Bam is usually a bird.</small></div></div><span class="count">36</span></div>
-        <div class="tile-row"><div class="what"><span class="chip red">C</span><div>Craks (characters) 1&#8211;9<small>Four of each number.</small></div></div><span class="count">36</span></div>
-        <div class="tile-row"><div class="what"><span class="chip blue">D</span><div>Dots (circles) 1&#8211;9<small>Four of each number.</small></div></div><span class="count">36</span></div>
-        <div class="tile-row"><div class="what"><span class="chip">N</span><div>Winds: North, East, West, South<small>One of each is "NEWS."</small></div></div><span class="count">16</span></div>
-        <div class="tile-row"><div class="what"><span class="chip red">Dr</span><div>Dragons: Red, Green, White<small>Red goes with Craks, Green with Bams, White (Soap) with Dots.</small></div></div><span class="count">12</span></div>
-        <div class="tile-row"><div class="what"><span class="chip">F</span><div>Flowers<small>All Flowers count as the same tile.</small></div></div><span class="count">8</span></div>
-        <div class="tile-row"><div class="what"><span class="chip">J</span><div>Jokers<small>Wild in groups of three or more.</small></div></div><span class="count">8</span></div>
-      </div>
-      <div class="groups" aria-label="Group sizes">
-        <div class="group"><b>Pair</b><span>2 alike</span></div>
-        <div class="group"><b>Pung</b><span>3 alike</span></div>
-        <div class="group"><b>Kong</b><span>4 alike</span></div>
-        <div class="group"><b>Quint</b><span>5 alike</span></div>
-        <div class="group"><b>Sextet</b><span>6 alike</span></div>
-      </div>
-    </div>
-
-    <div class="panel" id="en-charleston">
-      <h2>The Charleston<span class="tag">3 tiles a pass</span></h2>
-      <h3>First Charleston (required)</h3>
-      <div class="passes">
-        <div class="pass"><div class="n">Pass 1</div><div class="arrow" aria-hidden="true">&#8594;</div><div class="dir">Right</div></div>
-        <div class="pass"><div class="n">Pass 2</div><div class="arrow" aria-hidden="true">&#8597;</div><div class="dir">Across</div></div>
-        <div class="pass blind"><div class="n">Pass 3</div><div class="arrow" aria-hidden="true">&#8592;</div><div class="dir">Left</div><span class="bl">Blind OK</span></div>
-      </div>
-      <h3>Second Charleston (optional)</h3>
-      <div class="passes">
-        <div class="pass"><div class="n">Pass 4</div><div class="arrow" aria-hidden="true">&#8592;</div><div class="dir">Left</div></div>
-        <div class="pass"><div class="n">Pass 5</div><div class="arrow" aria-hidden="true">&#8597;</div><div class="dir">Across</div></div>
-        <div class="pass blind"><div class="n">Pass 6</div><div class="arrow" aria-hidden="true">&#8594;</div><div class="dir">Right</div><span class="bl">Blind OK</span></div>
-      </div>
-      <h3>Courtesy pass</h3>
-      <p>Last, you and the player across may trade 0 to 3 tiles. The smaller number wins.</p>
-      <p class="note">Tip: pass whole groups you've decided against, not your only tile of a kind.</p>
-    </div>
-
-    <div class="panel" id="en-turn">
-      <h2>A turn</h2>
-      <ul>
-        <li><b>Setup:</b> each player builds a wall 19 stacks long, two tiles high. East rolls the dice to break the wall.</li>
-        <li><b>Deal:</b> East gets 14 tiles, everyone else 13. East starts by discarding.</li>
-        <li><b>Your turn:</b> draw from the wall, redeem any Jokers you can, then discard one tile.</li>
-        <li><b>Name every discard out loud,</b> for example <span class="say">"Five Dot"</span> or <span class="say">"Flower."</span></li>
-        <li><b>Calling a discard:</b> say <span class="say">"Call,"</span> take the tile, expose the full group face up, then discard. Play continues to your right.</li>
-        <li><b>Exposures are final.</b> Once a group is on the table it can't be rearranged, and everyone can read your hand from it.</li>
-      </ul>
-    </div>
-
-    <div class="panel" id="en-card">
-      <h2>Reading the card</h2>
-      <ul>
-        <li>The NMJL publishes a new card every spring. Last year's hands no longer count.</li>
-        <li>Hands are grouped into sections such as 2468, Like Numbers, 369, Consecutive Run, Winds &amp; Dragons, and Singles &amp; Pairs.</li>
-        <li><b>X</b> means you may expose groups. <b>C</b> means the hand stays concealed until Mahjong.</li>
-        <li>The number beside each hand is its value, usually 25 to 50 or more.</li>
-        <li>Pick two or three possible hands after the Charleston, then narrow down to one as tiles come.</li>
-      </ul>
-    </div>
-
-    <div class="panel" id="en-pays">
-      <h2>Who pays<span class="tag">25-point hand</span></h2>
-      <div class="tbl">
-        <table>
-          <thead><tr><th>How it was won</th><th class="num">Discarder</th><th class="num">Others, each</th></tr></thead>
-          <tbody>
-            <tr><td>On a discard</td><td class="num">50</td><td class="num">25</td></tr>
-            <tr><td>Drawn from the wall</td><td class="num">&#8212;</td><td class="num">50</td></tr>
-            <tr><td>Jokerless, on a discard</td><td class="num">100</td><td class="num">50</td></tr>
-            <tr><td>Jokerless, from the wall</td><td class="num">&#8212;</td><td class="num">100</td></tr>
-          </tbody>
-        </table>
-      </div>
-      <p class="note">Whoever throws the winning tile pays double. When the winner draws the tile themselves, all three pay double. If the wall runs out with no winner, it's a wall game and nobody pays.</p>
-    </div>
-
-    <div class="panel" id="en-strategy">
-      <h2>Strategy &amp; defense</h2>
-      <ul>
-        <li><b>Keep your Jokers.</b> They're worth more in your rack than any single tile you could pass.</li>
-        <li><b>Count dead tiles.</b> If three of a tile are already discarded or exposed, only one is left, so plan around it.</li>
-        <li><b>Watch exposures.</b> Two or three exposed groups usually point to one hand on the card. Don't throw its missing tiles.</li>
-        <li><b>Play safe late.</b> When someone looks close to Mahjong, discard tiles that are already on the table.</li>
-        <li><b>Stay flexible</b> until you've collected about half of a hand.</li>
-      </ul>
-    </div>
-
-  </div>
-</section></div>
+      <div class="sheet" id="sheet-en"></div>
     </div>
 
     <div data-l="es" lang="es">
@@ -374,128 +298,7 @@
       <nav class="jump" aria-label="Secciones">
         <a href="#es-miss">Se olvidan</a><a href="#es-set">Fichas</a><a href="#es-charleston">Charleston</a><a href="#es-turn">Un turno</a><a href="#es-card">La tarjeta</a><a href="#es-pays">Quién paga</a><a href="#es-strategy">Estrategia</a>
       </nav>
-      <div class="sheet"><section>
-  <div class="wrap">
-    <div class="band" id="es-miss">
-      <h2>Reglas que se olvidan fácilmente</h2>
-      <p class="sub">Salen en casi todas las mesas, incluso con jugadores con experiencia.</p>
-      <div class="misses">
-        <div class="miss"><span class="k">Pedir descartes</span><h3>No se pide ficha para una pareja</h3><p>Solo puedes pedir un descarte para completar un pung, kong, quint o sextet, o para declarar Mahjong. Una ficha que completa un single o una pareja solo se puede pedir para Mahjong.</p></div>
-        <div class="miss"><span class="k">Pedir descartes</span><h3>La oportunidad se cierra rápido</h3><p>Puedes pedir un descarte hasta que el siguiente jugador haya robado una ficha y la haya puesto en su atril. Di "Call" con claridad y luego toma la ficha.</p></div>
-        <div class="miss"><span class="k">Pedir descartes</span><h3>Mahjong gana a una exposición</h3><p>Si dos jugadores piden la misma ficha, gana quien la pide para Mahjong. Si ambos la quieren para lo mismo, se la lleva el jugador más cercano en turno después de quien descartó.</p></div>
-        <div class="miss"><span class="k">Jokers</span><h3>Recupera Jokers de cualquier exposición</h3><p>En tu turno, cambia la ficha correspondiente por un Joker de cualquier grupo expuesto, incluido el tuyo. Puedes hacer varios cambios en un mismo turno.</p></div>
-        <div class="miss"><span class="k">Jokers</span><h3>Un Joker descartado está muerto</h3><p>Nadie puede pedir un Joker de los descartes, y un descarte no sirve para cambiarlo por un Joker expuesto. Solo las fichas de tu atril recuperan Jokers.</p></div>
-        <div class="miss"><span class="k">Jokers</span><h3>Nunca en un single ni en una pareja</h3><p>Los Jokers solo completan grupos de tres o más. No sustituyen una pareja, una ficha suelta ni una ficha de NEWS o de un año como 2026.</p></div>
-        <div class="miss"><span class="k">Charleston</span><h3>Los Jokers no se pasan</h3><p>Ni en el Charleston ni en el pase de cortesía. Las Flores sí se pueden pasar.</p></div>
-        <div class="miss"><span class="k">Charleston</span><h3>El pase a ciegas</h3><p>En el último pase de cada Charleston (el primero a la izquierda, el segundo a la derecha) puedes pasar de 1 a 3 de las fichas que acabas de recibir sin mirarlas.</p></div>
-        <div class="miss"><span class="k">Charleston</span><h3>Un jugador puede detener el segundo Charleston</h3><p>El primer Charleston es obligatorio. Cualquier jugador puede rechazar el segundo. En el pase de cortesía decide quien quiere pasar menos fichas.</p></div>
-        <div class="miss"><span class="k">La tarjeta</span><h3>C significa oculta</h3><p>En una mano marcada con C no puedes pedir descartes para exponer. Solo puedes pedir la última ficha, para Mahjong.</p></div>
-        <div class="miss"><span class="k">La tarjeta</span><h3>Los colores indican palos, no palos concretos</h3><p>Un color en una mano significa un palo; tres colores, tres palos distintos. Un dragón del mismo color que un número corresponde a ese palo.</p></div>
-        <div class="miss"><span class="k">La tarjeta</span><h3>Soap cuenta como cero</h3><p>En las manos de año, como 2026, el Dragón Blanco (Soap) es el 0. Las Flores son intercambiables: cualquier Flor vale por otra.</p></div>
-        <div class="miss"><span class="k">Exposiciones</span><h3>Un quint necesita Joker</h3><p>Solo hay cuatro fichas de cada tipo, así que un quint o un sextet necesita Jokers. Las Flores son la excepción: hay ocho.</p></div>
-        <div class="miss"><span class="k">Mano muerta</span><h3>Una mano muerta también paga</h3><p>Una mano queda muerta si tiene un número incorrecto de fichas o si sus exposiciones no coinciden con ninguna mano de la tarjeta. Ese jugador deja de jugar, pero paga si otro gana.</p></div>
-        <div class="miss"><span class="k">Puntuación</span><h3>Sin Jokers vale el doble</h3><p>Una mano ganadora sin Jokers vale el doble. Las manos que nunca pueden usar Jokers, como Singles and Pairs, no reciben el extra.</p></div>
-        <div class="miss"><span class="k">Puntuación</span><h3>Verifica antes de declarar</h3><p>Comprueba tus 14 fichas con la tarjeta antes de decir Mahjong. Todos deberían revisarla antes de mezclar las fichas.</p></div>
-      </div>
-    </div>
-  </div>
-</section>
-
-
-<section>
-  <div class="wrap grid">
-
-    <div class="panel" id="es-set">
-      <h2>Las fichas<span class="tag">152 fichas</span></h2>
-      <div class="tiles">
-        <div class="tile-row"><div class="what"><span class="chip">B</span><div>Bams (bambúes) 1&#8211;9<small>El 1 de Bam suele ser un pájaro.</small></div></div><span class="count">36</span></div>
-        <div class="tile-row"><div class="what"><span class="chip red">C</span><div>Craks (caracteres) 1&#8211;9<small>Cuatro de cada número.</small></div></div><span class="count">36</span></div>
-        <div class="tile-row"><div class="what"><span class="chip blue">D</span><div>Dots (círculos) 1&#8211;9<small>Cuatro de cada número.</small></div></div><span class="count">36</span></div>
-        <div class="tile-row"><div class="what"><span class="chip">N</span><div>Vientos: Norte, Este, Oeste, Sur<small>Uno de cada uno forma "NEWS" (en inglés).</small></div></div><span class="count">16</span></div>
-        <div class="tile-row"><div class="what"><span class="chip red">Dr</span><div>Dragones: Rojo, Verde, Blanco<small>El Rojo va con Craks, el Verde con Bams y el Blanco (Soap) con Dots.</small></div></div><span class="count">12</span></div>
-        <div class="tile-row"><div class="what"><span class="chip">F</span><div>Flores<small>Todas las Flores cuentan como la misma ficha.</small></div></div><span class="count">8</span></div>
-        <div class="tile-row"><div class="what"><span class="chip">J</span><div>Jokers<small>Comodines en grupos de tres o más.</small></div></div><span class="count">8</span></div>
-      </div>
-      <div class="groups" aria-label="Tamaños de grupo">
-        <div class="group"><b>Pareja</b><span>2 iguales</span></div>
-        <div class="group"><b>Pung</b><span>3 iguales</span></div>
-        <div class="group"><b>Kong</b><span>4 iguales</span></div>
-        <div class="group"><b>Quint</b><span>5 iguales</span></div>
-        <div class="group"><b>Sextet</b><span>6 iguales</span></div>
-      </div>
-    </div>
-
-    <div class="panel" id="es-charleston">
-      <h2>El Charleston<span class="tag">3 fichas por pase</span></h2>
-      <h3>Primer Charleston (obligatorio)</h3>
-      <div class="passes">
-        <div class="pass"><div class="n">Pase 1</div><div class="arrow" aria-hidden="true">&#8594;</div><div class="dir">Derecha</div></div>
-        <div class="pass"><div class="n">Pase 2</div><div class="arrow" aria-hidden="true">&#8597;</div><div class="dir">Enfrente</div></div>
-        <div class="pass blind"><div class="n">Pase 3</div><div class="arrow" aria-hidden="true">&#8592;</div><div class="dir">Izquierda</div><span class="bl">A ciegas OK</span></div>
-      </div>
-      <h3>Segundo Charleston (opcional)</h3>
-      <div class="passes">
-        <div class="pass"><div class="n">Pase 4</div><div class="arrow" aria-hidden="true">&#8592;</div><div class="dir">Izquierda</div></div>
-        <div class="pass"><div class="n">Pase 5</div><div class="arrow" aria-hidden="true">&#8597;</div><div class="dir">Enfrente</div></div>
-        <div class="pass blind"><div class="n">Pase 6</div><div class="arrow" aria-hidden="true">&#8594;</div><div class="dir">Derecha</div><span class="bl">A ciegas OK</span></div>
-      </div>
-      <h3>Pase de cortesía</h3>
-      <p>Al final, tú y el jugador de enfrente pueden intercambiar de 0 a 3 fichas. Gana el número menor.</p>
-      <p class="note">Consejo: pasa grupos completos que ya descartaste, no tu única ficha de un tipo.</p>
-    </div>
-
-    <div class="panel" id="es-turn">
-      <h2>Un turno</h2>
-      <ul>
-        <li><b>Preparación:</b> cada jugador arma una muralla de 19 columnas de largo y dos fichas de alto. Este (East) tira los dados para abrir la muralla.</li>
-        <li><b>Reparto:</b> Este recibe 14 fichas; los demás, 13. Este empieza descartando.</li>
-        <li><b>Tu turno:</b> roba de la muralla, recupera los Jokers que puedas y descarta una ficha.</li>
-        <li><b>Nombra cada descarte en voz alta,</b> por ejemplo <span class="say">"Cinco Dot"</span> o <span class="say">"Flor."</span></li>
-        <li><b>Pedir un descarte:</b> di <span class="say">"Call"</span>, toma la ficha, expón el grupo completo boca arriba y luego descarta. El juego sigue hacia tu derecha.</li>
-        <li><b>Las exposiciones son definitivas.</b> Una vez en la mesa, un grupo no se puede reorganizar y todos pueden deducir tu mano.</li>
-      </ul>
-    </div>
-
-    <div class="panel" id="es-card">
-      <h2>Cómo leer la tarjeta</h2>
-      <ul>
-        <li>La NMJL publica una tarjeta nueva cada primavera. Las manos del año anterior ya no cuentan.</li>
-        <li>Las manos se agrupan en secciones como 2468, Like Numbers, 369, Consecutive Run, Winds &amp; Dragons y Singles &amp; Pairs.</li>
-        <li><b>X</b> significa que puedes exponer grupos. <b>C</b> significa que la mano queda oculta hasta el Mahjong.</li>
-        <li>El número junto a cada mano es su valor, normalmente de 25 a 50 o más.</li>
-        <li>Después del Charleston, elige dos o tres manos posibles y quédate con una a medida que lleguen las fichas.</li>
-      </ul>
-    </div>
-
-    <div class="panel" id="es-pays">
-      <h2>Quién paga<span class="tag">Mano de 25 puntos</span></h2>
-      <div class="tbl">
-        <table>
-          <thead><tr><th>Cómo se ganó</th><th class="num">Quien descartó</th><th class="num">Cada uno de los demás</th></tr></thead>
-          <tbody>
-            <tr><td>Con un descarte</td><td class="num">50</td><td class="num">25</td></tr>
-            <tr><td>Robada de la muralla</td><td class="num">&#8212;</td><td class="num">50</td></tr>
-            <tr><td>Sin Jokers, con un descarte</td><td class="num">100</td><td class="num">50</td></tr>
-            <tr><td>Sin Jokers, de la muralla</td><td class="num">&#8212;</td><td class="num">100</td></tr>
-          </tbody>
-        </table>
-      </div>
-      <p class="note">Quien descarta la ficha ganadora paga el doble. Si el ganador roba la ficha, los tres pagan el doble. Si se acaba la muralla sin ganador, es un juego de muralla (wall game) y nadie paga.</p>
-    </div>
-
-    <div class="panel" id="es-strategy">
-      <h2>Estrategia y defensa</h2>
-      <ul>
-        <li><b>Guarda tus Jokers.</b> Valen más en tu atril que cualquier ficha que pudieras pasar.</li>
-        <li><b>Cuenta las fichas muertas.</b> Si ya hay tres de una ficha descartadas o expuestas, solo queda una; planifica en consecuencia.</li>
-        <li><b>Observa las exposiciones.</b> Dos o tres grupos expuestos suelen apuntar a una mano de la tarjeta. No descartes las fichas que le faltan.</li>
-        <li><b>Juega seguro al final.</b> Cuando alguien parece estar cerca del Mahjong, descarta fichas que ya están en la mesa.</li>
-        <li><b>Mantente flexible</b> hasta reunir más o menos la mitad de una mano.</li>
-      </ul>
-    </div>
-
-  </div>
-</section></div>
+      <div class="sheet" id="sheet-es"></div>
     </div>
   </section>
 
@@ -562,6 +365,7 @@
       <a href="https://mahjonglandsandiego.com/" target="_blank" rel="noopener"><span data-t="linkSite"></span><span>&#8599;</span></a>
     </div>
     <p class="note" data-t="bookNote"></p>
+    <p class="account"><span id="account-email"></span><button class="linkbtn" type="button" id="sign-out" data-t="signOut"></button></p>
   </section>
 </main>
 
@@ -598,7 +402,22 @@
       linkBeginner: 'Beginner lessons', linkPrivate: 'Private lessons at home', linkParties: 'Mahjong parties', linkSite: 'Mahjong Land SD website',
       bookNote: 'Calendars are run by Mahjong Land SD through GoHighLevel. Luli confirms every booking by email.',
       installAndroid: 'Add this app to your home screen for quick access at the table.', installBtn: 'Install',
-      installIOS: 'Add to your home screen: tap the Share button, then "Add to Home Screen."', close: 'Not now'
+      installIOS: 'Add to your home screen: tap the Share button, then "Add to Home Screen."', close: 'Not now',
+      gateKicker: 'Students only', gateTitle: 'Welcome to <em>Mahjong Land</em>',
+      gateLede: 'Sign in with the email you gave Luli. We\'ll email you a code, no password needed.',
+      emailLabel: 'Your email', sendCode: 'Email me a code', sending: 'Sending…',
+      codeLabel: e => `Enter the code we sent to ${e}`, signIn: 'Sign in', checking: 'Checking…',
+      resend: 'Send a new code', useOther: 'Use a different email', codeResent: 'New code sent. Check your inbox and spam folder.',
+      badEmail: 'Please enter a valid email address.',
+      notApproved: 'That email isn\'t on Luli\'s student list yet. Use the email you booked with, or text Luli at (619) 208-6972 to be added.',
+      badCode: 'That code didn\'t work or has expired. Check it, or send a new code.',
+      tooMany: 'Too many tries. Please wait a minute and try again.',
+      offline: 'You\'re offline. Connect to the internet to sign in.',
+      failed: 'Something went wrong. Please try again in a minute.',
+      revoked: 'Your access has ended. Text Luli at (619) 208-6972 if you think this is a mistake.',
+      loadingContent: 'Loading your cheat sheet…',
+      gateHelp: 'Not a student yet? <a href="https://mahjonglandsandiego.com/calendar" target="_blank" rel="noopener">Book a class</a> or text Luli at <a href="sms:+16192086972">(619) 208-6972</a>.',
+      signOut: 'Sign out', signedInAs: e => `Signed in as ${e}.`
     },
     es: {
       tabCheat: 'Guía', tabPractice: 'Practicar', tabBook: 'Reservar',
@@ -621,65 +440,28 @@
       linkBeginner: 'Clases para principiantes', linkPrivate: 'Clases privadas en casa', linkParties: 'Fiestas de mahjong', linkSite: 'Sitio web de Mahjong Land SD',
       bookNote: 'Los calendarios los gestiona Mahjong Land SD con GoHighLevel. Luli confirma cada reserva por email.',
       installAndroid: 'Agrega esta app a tu pantalla de inicio para tenerla a mano en la mesa.', installBtn: 'Instalar',
-      installIOS: 'Agrégala a tu pantalla de inicio: toca el botón Compartir y luego "Agregar a inicio".', close: 'Ahora no'
+      installIOS: 'Agrégala a tu pantalla de inicio: toca el botón Compartir y luego "Agregar a inicio".', close: 'Ahora no',
+      gateKicker: 'Solo alumnos', gateTitle: 'Bienvenido a <em>Mahjong Land</em>',
+      gateLede: 'Entra con el email que le diste a Luli. Te enviaremos un código por email, sin contraseña.',
+      emailLabel: 'Tu email', sendCode: 'Envíame un código', sending: 'Enviando…',
+      codeLabel: e => `Escribe el código que enviamos a ${e}`, signIn: 'Entrar', checking: 'Comprobando…',
+      resend: 'Enviar un código nuevo', useOther: 'Usar otro email', codeResent: 'Código nuevo enviado. Revisa tu bandeja de entrada y el spam.',
+      badEmail: 'Escribe un email válido.',
+      notApproved: 'Ese email todavía no está en la lista de alumnos de Luli. Usa el email con el que reservaste, o escríbele a Luli al (619) 208-6972 para que te agregue.',
+      badCode: 'Ese código no funcionó o ya venció. Revísalo o pide un código nuevo.',
+      tooMany: 'Demasiados intentos. Espera un minuto y vuelve a intentarlo.',
+      offline: 'No tienes conexión. Conéctate a internet para entrar.',
+      failed: 'Algo salió mal. Inténtalo de nuevo en un minuto.',
+      revoked: 'Tu acceso terminó. Escríbele a Luli al (619) 208-6972 si crees que es un error.',
+      loadingContent: 'Cargando tu guía…',
+      gateHelp: '¿Todavía no eres alumno? <a href="https://mahjonglandsandiego.com/calendar" target="_blank" rel="noopener">Reserva una clase</a> o escríbele a Luli al <a href="sms:+16192086972">(619) 208-6972</a>.',
+      signOut: 'Cerrar sesión', signedInAs: e => `Sesión iniciada como ${e}.`
     }
   };
 
-  // ---------- Joker drill questions ----------
+  // ---------- Joker drill questions (loaded after sign-in) ----------
   // tiles: B/C/D suits, J Joker, ? missing spot; [label, kind, sub]
-  const Q = [
-    { a: true, tiles: [['5','d','DOT'],['5','d','DOT'],['J','j','']],
-      en: ['Can a Joker complete this pung of 5 Dots?', 'Jokers can fill any group of three or more: pung, kong, quint or sextet.'],
-      es: ['¿Puede un Joker completar este pung de 5 Dots?', 'Los Jokers completan cualquier grupo de tres o más: pung, kong, quint o sextet.'] },
-    { a: false, tiles: [['2','b','BAM'],['J','j','']],
-      en: ['Can a Joker complete this pair of 2 Bams?', 'Jokers never go in a pair. They only fill groups of three or more.'],
-      es: ['¿Puede un Joker completar esta pareja de 2 Bams?', 'Los Jokers nunca van en una pareja. Solo completan grupos de tres o más.'] },
-    { a: false, tiles: [['N','',''],['E','',''],['?','q',''],['S','','']],
-      en: ['Your hand needs NEWS (one of each wind). Can a Joker stand in for the West?', 'NEWS is four single tiles, and a Joker can never be a single.'],
-      es: ['Tu mano necesita NEWS (un viento de cada uno). ¿Puede un Joker sustituir al Oeste (W)?', 'NEWS son cuatro fichas sueltas, y un Joker nunca puede ser una ficha suelta.'] },
-    { a: false, tiles: [['2','',''],['?','q',''],['2','',''],['6','','']],
-      en: ['A year hand needs 2026. Can a Joker be the 0 (Soap)?', 'Each digit of a year is a single tile, so Jokers can\'t be used there.'],
-      es: ['Una mano de año necesita 2026. ¿Puede un Joker ser el 0 (Soap)?', 'Cada dígito del año es una ficha suelta, así que ahí no se usan Jokers.'] },
-    { a: true, tiles: [['7','b','BAM'],['7','b','BAM'],['7','b','BAM'],['J','j',''],['J','j','']],
-      en: ['Can Jokers help make a quint of 7 Bams?', 'There are only four 7 Bams in the set, so a quint always needs at least one Joker.'],
-      es: ['¿Pueden los Jokers ayudar a formar un quint de 7 Bams?', 'Solo hay cuatro 7 Bams en el juego, así que un quint siempre necesita al menos un Joker.'] },
-    { a: true, tiles: [['F','',''],['F','',''],['J','j','']],
-      en: ['Can a Joker go in a pung of Flowers?', 'Yes. In a group of three or more, Flowers work like any other tile.'],
-      es: ['¿Puede ir un Joker en un pung de Flores?', 'Sí. En un grupo de tres o más, las Flores funcionan como cualquier otra ficha.'] },
-    { a: true, tiles: [['R','c','DRAG'],['R','c','DRAG'],['R','c','DRAG'],['J','j','']],
-      en: ['Can a Joker complete a kong of Red Dragons?', 'A kong is four alike, so a Joker can fill it.'],
-      es: ['¿Puede un Joker completar un kong de Dragones Rojos?', 'Un kong son cuatro iguales, así que un Joker puede completarlo.'] },
-    { a: true, tiles: [['8','c','CRAK'],['8','c','CRAK'],['J','j','']],
-      en: ['It\'s your turn. Another player has 8 Crak, 8 Crak, Joker exposed, and you hold an 8 Crak. Can you swap it for the Joker?', 'On your turn, you can redeem a Joker from any exposure with the matching tile from your rack.'],
-      es: ['Es tu turno. Otro jugador tiene expuesto 8 Crak, 8 Crak, Joker, y tú tienes un 8 Crak. ¿Puedes cambiarlo por el Joker?', 'En tu turno puedes recuperar un Joker de cualquier exposición con la ficha correspondiente de tu atril.'] },
-    { a: false, tiles: [],
-      en: ['The player before you just discarded an 8 Crak. Can you use that discard to take the Joker from an exposed 8 Crak pung?', 'Only tiles from your own rack can redeem Jokers, never a discard.'],
-      es: ['El jugador anterior acaba de descartar un 8 Crak. ¿Puedes usar ese descarte para llevarte el Joker de un pung expuesto de 8 Crak?', 'Solo las fichas de tu propio atril recuperan Jokers, nunca un descarte.'] },
-    { a: false, tiles: [['J','j','']],
-      en: ['Someone discards a Joker. Can you call it to finish your pung?', 'A discarded Joker is dead. Nobody can call it.'],
-      es: ['Alguien descarta un Joker. ¿Puedes pedirlo para completar tu pung?', 'Un Joker descartado está muerto. Nadie puede pedirlo.'] },
-    { a: false, tiles: [],
-      en: ['It isn\'t your turn, but you hold the tile that matches an exposed Joker. Can you swap it now?', 'Joker swaps only happen on your own turn.'],
-      es: ['No es tu turno, pero tienes la ficha que corresponde a un Joker expuesto. ¿Puedes cambiarlo ahora?', 'Los cambios de Joker solo se hacen en tu propio turno.'] },
-    { a: false, tiles: [['J','j','']],
-      en: ['During the Charleston, can you pass a Joker you don\'t want?', 'Jokers can never be passed, not in the Charleston and not in the courtesy pass.'],
-      es: ['Durante el Charleston, ¿puedes pasar un Joker que no quieres?', 'Los Jokers nunca se pasan, ni en el Charleston ni en el pase de cortesía.'] },
-    { a: true, tiles: [],
-      en: ['On your turn you hold the matching tiles for two different exposed Jokers. Can you swap both?', 'You can make as many swaps as you have matching tiles on your turn.'],
-      es: ['En tu turno tienes las fichas que corresponden a dos Jokers expuestos distintos. ¿Puedes cambiar los dos?', 'En tu turno puedes hacer tantos cambios como fichas correspondientes tengas.'] },
-    { a: true, tiles: [['4','d','DOT'],['4','d','DOT'],['J','j','']],
-      en: ['On your turn, can you redeem a Joker from your own exposed group?', 'Yes. Your own exposures count too, as long as you have the matching tile.'],
-      es: ['En tu turno, ¿puedes recuperar un Joker de tu propio grupo expuesto?', 'Sí. Tus propias exposiciones también cuentan, siempre que tengas la ficha correspondiente.'] },
-    { a: false, tiles: [],
-      en: ['Your hand is from the Singles and Pairs section. Can you use a Joker anywhere in it?', 'That section has only singles and pairs, so Jokers never fit.'],
-      es: ['Tu mano es de la sección Singles and Pairs. ¿Puedes usar un Joker en alguna parte?', 'Esa sección solo tiene fichas sueltas y parejas, así que los Jokers nunca caben.'] },
-    { a: true, tiles: [['3','d','DOT'],['J','j',''],['?','q','']],
-      en: ['You hold a 3 Dot and a Joker. Someone discards a 3 Dot. Can you call it to expose a pung?', 'You can call a discard to complete a group of three or more, even when the group uses a Joker.'],
-      es: ['Tienes un 3 Dot y un Joker. Alguien descarta un 3 Dot. ¿Puedes pedirlo para exponer un pung?', 'Puedes pedir un descarte para completar un grupo de tres o más, aunque el grupo use un Joker.'] },
-    { a: true, tiles: [],
-      en: ['Your winning hand has no Jokers at all. Is it worth more?', 'A jokerless hand scores double, except hands that can never use Jokers, like Singles and Pairs.'],
-      es: ['Tu mano ganadora no tiene ningún Joker. ¿Vale más?', 'Una mano sin Jokers vale el doble, salvo las manos que nunca pueden usar Jokers, como Singles and Pairs.'] }
-  ];
+  let Q = [];
 
   const $ = id => document.getElementById(id);
   const store = { get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} } };
@@ -695,6 +477,9 @@
     $('drill-again').textContent = T[lang].again; $('install-close').textContent = T[lang].close; $('install-btn').textContent = T[lang].installBtn;
     renderInstall(); renderQuestion(); if (!$('drill-done').hidden) renderDone();
     $('cal-note').textContent = T[lang][CALS[currentCal].note];
+    if (pendingEmail) $('code-label').textContent = T[lang].codeLabel(pendingEmail);
+    $('account-email').textContent = session ? T[lang].signedInAs(session.email) : '';
+    if (msgKey) showMsg(msgKey, msgOk);
   }
   document.querySelectorAll('[data-set-lang]').forEach(b => b.addEventListener('click', () => { lang = b.dataset.setLang; store.set('mjl-lang', lang); applyLang(); }));
 
@@ -798,10 +583,135 @@
   $('install-btn').addEventListener('click', async () => { if (!deferred) return; deferred.prompt(); await deferred.userChoice.catch(() => {}); deferred = null; renderInstall(); });
   $('install-close').addEventListener('click', () => { store.set('mjl-install-dismissed', '1'); renderInstall(); });
 
+  // ---------- Sign-in (Supabase Auth email codes; content lives in a private Supabase bucket) ----------
+  const SB = 'https://ywrtousfcabcphoxlyrp.supabase.co', KEY = 'sb_publishable_MjvfNv0Hdg_gZMWXmAJTFg_n4vDQHYn';
+  let session = null, pendingEmail = '', msgKey = '', msgOk = false;
+  try { session = JSON.parse(store.get('mjl-session') || 'null'); } catch (e) { session = null; }
+
+  function showMsg(key, ok) { msgKey = key; msgOk = !!ok; const m = $('gate-msg'); m.textContent = key ? T[lang][key] : ''; m.className = 'gate-msg' + (ok ? ' ok' : ''); }
+  function saveSession(s) { session = s; if (s) store.set('mjl-session', JSON.stringify(s)); else { try { localStorage.removeItem('mjl-session'); localStorage.removeItem('mjl-content'); } catch (e) {} } }
+
+  async function api(path, body, token) {
+    const headers = { apikey: KEY, 'Content-Type': 'application/json' };
+    if (token) headers.Authorization = 'Bearer ' + token;  // publishable keys are not JWTs, so only real sessions go here
+    const res = await fetch(SB + path, { method: 'POST', headers, body: JSON.stringify(body) });
+    let data = {}; try { data = await res.json(); } catch (e) {}
+    return { ok: res.ok, status: res.status, data };
+  }
+  function fromAuth(d) {
+    return { access: d.access_token, refresh: d.refresh_token, expires: d.expires_at || Math.floor(Date.now() / 1000) + (d.expires_in || 3600), email: (d.user && d.user.email) || pendingEmail };
+  }
+  function errKey(r) {
+    const code = String(r.data.error_code || r.data.code || ''), text = JSON.stringify(r.data).toLowerCase();
+    if (r.status === 429 || code.includes('rate')) return 'tooMany';
+    if (text.includes('not_approved') || code === 'hook_payload_invalid' || r.status === 403) return 'notApproved';
+    return 'failed';
+  }
+
+  // Keep the access token fresh. Returns false only when the sign-in is no longer valid.
+  async function ensureFresh() {
+    if (!session) return false;
+    if (session.expires - 60 > Date.now() / 1000) return true;
+    const r = await api('/auth/v1/token?grant_type=refresh_token', { refresh_token: session.refresh });
+    if (r.ok) { saveSession(fromAuth(Object.assign({ user: { email: session.email } }, r.data))); return true; }
+    if (r.status >= 400 && r.status < 500) return false;
+    throw new Error('refresh failed');
+  }
+
+  function applyContent(c) {
+    $('sheet-en').innerHTML = c.en; $('sheet-es').innerHTML = c.es; Q = c.q;
+    startDrill();
+  }
+  async function fetchContent() {
+    const res = await fetch(SB + '/storage/v1/object/authenticated/app/content.json', { headers: { apikey: KEY, Authorization: 'Bearer ' + session.access }, cache: 'no-store' });
+    if (res.ok) { const c = await res.json(); store.set('mjl-content', JSON.stringify(c)); return c; }
+    if (res.status >= 400 && res.status < 500) return null; // not on the approved list any more
+    throw new Error('content ' + res.status);
+  }
+
+  function lock(key) {
+    document.body.classList.add('locked'); $('gate').hidden = false;
+    $('sheet-en').innerHTML = ''; $('sheet-es').innerHTML = ''; Q = []; startDrill();
+    $('email-form').hidden = false; $('code-form').hidden = true; pendingEmail = '';
+    showMsg(key || '', false); applyLang();
+  }
+  function unlock() {
+    document.body.classList.remove('locked'); $('gate').hidden = true; showMsg('', false);
+    applyLang(); route();
+  }
+
+  async function openApp() {
+    let cached = null; try { cached = JSON.parse(store.get('mjl-content') || 'null'); } catch (e) {}
+    if (cached) { applyContent(cached); unlock(); }  // open straight away, even offline
+    else { $('sheet-en').innerHTML = $('sheet-es').innerHTML = `<p class="loading-content">${T[lang].loadingContent}</p>`; unlock(); }
+    if (!navigator.onLine) { if (!cached) lock('offline'); return; }
+    try {
+      if (!(await ensureFresh())) { saveSession(null); lock('revoked'); return; }
+      const c = await fetchContent();
+      if (!c) { saveSession(null); lock('revoked'); return; }
+      applyContent(c); route();
+    } catch (e) { if (!cached) { lock('failed'); } }
+  }
+
+  async function sendCode(resend) {
+    const email = resend ? pendingEmail : $('email').value.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showMsg('badEmail'); $('email').focus(); return; }
+    if (!navigator.onLine) { showMsg('offline'); return; }
+    const btn = resend ? $('code-resend') : $('email-btn');
+    btn.disabled = true; if (!resend) btn.textContent = T[lang].sending;
+    try {
+      const r = await api('/auth/v1/otp', { email, create_user: true });
+      if (!r.ok) { showMsg(errKey(r)); return; }
+      pendingEmail = email;
+      $('email-form').hidden = true; $('code-form').hidden = false; $('code').value = '';
+      showMsg(resend ? 'codeResent' : '', true); applyLang(); $('code').focus();
+    } catch (e) { showMsg('failed'); }
+    finally { btn.disabled = false; $('email-btn').textContent = T[lang].sendCode; }
+  }
+
+  $('email-form').addEventListener('submit', e => { e.preventDefault(); sendCode(false); });
+  $('code-resend').addEventListener('click', () => sendCode(true));
+  $('code-back').addEventListener('click', () => { pendingEmail = ''; $('code-form').hidden = true; $('email-form').hidden = false; showMsg(''); $('email').focus(); });
+  $('code').addEventListener('input', e => { e.target.value = e.target.value.replace(/\D/g, ''); });
+  $('code-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const token = $('code').value.trim();
+    if (token.length < 6) { showMsg('badCode'); return; }
+    if (!navigator.onLine) { showMsg('offline'); return; }
+    const btn = $('code-btn'); btn.disabled = true; btn.textContent = T[lang].checking;
+    try {
+      const r = await api('/auth/v1/verify', { type: 'email', email: pendingEmail, token });
+      if (!r.ok) { showMsg(r.status === 429 ? 'tooMany' : 'badCode'); return; }
+      saveSession(fromAuth(r.data));
+      const c = await fetchContent();
+      if (!c) { saveSession(null); lock('notApproved'); return; }
+      pendingEmail = ''; applyContent(c); unlock();
+    } catch (err) { showMsg('failed'); }
+    finally { btn.disabled = false; btn.textContent = T[lang].signIn; }
+  });
+  $('sign-out').addEventListener('click', () => {
+    const s = session; saveSession(null); lock('');
+    if (s && navigator.onLine) api('/auth/v1/logout', {}, s.access).catch(() => {});
+  });
+
+  // Email sign-in links land here as #access_token=...&refresh_token=... (or #error=...)
+  function takeLinkSession() {
+    const h = location.hash.slice(1);
+    if (!/(^|&)(access_token|error)=/.test(h)) return '';
+    const p = new URLSearchParams(h);
+    history.replaceState(null, '', location.pathname + location.search);
+    if (p.get('error')) return /expired|invalid/i.test(p.get('error_code') + p.get('error_description')) ? 'badCode' : 'failed';
+    let email = '';
+    try { email = JSON.parse(atob(p.get('access_token').split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))).email || ''; } catch (e) {}
+    saveSession({ access: p.get('access_token'), refresh: p.get('refresh_token'), expires: Number(p.get('expires_at')) || Math.floor(Date.now() / 1000) + Number(p.get('expires_in') || 3600), email });
+    return '';
+  }
+
   // ---------- Start ----------
   startDrill();
   applyLang();
-  route();
+  const linkMsg = takeLinkSession();
+  if (session) openApp(); else lock(linkMsg);
   if ('serviceWorker' in navigator) addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
 })();
 </script>
