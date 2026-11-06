@@ -170,6 +170,22 @@
   .done[hidden] { display: none; }
   .done .big { font-family: var(--serif); font-weight: 800; color: var(--green); font-size: 3rem; line-height: 1; font-variant-numeric: tabular-nums; }
 
+  .topics { display: flex; gap: 8px; overflow-x: auto; padding: 2px 0 6px; scrollbar-width: none; margin: 0 -2px; }
+  .topics::-webkit-scrollbar { display: none; }
+  .topics button { flex: none; border: 1.5px solid var(--gold); background: #fff; color: var(--green); border-radius: 999px; padding: 7px 14px; font-weight: 600; font-size: .88rem; cursor: pointer; }
+  .topics button[aria-pressed="true"] { background: var(--green); border-color: var(--green); color: #fff; }
+  .topics button small { font-weight: 500; opacity: .75; margin-left: 4px; font-variant-numeric: tabular-nums; }
+  .card .topic-tag { justify-self: start; font-size: .66rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--gold); }
+  .best { font-size: .88rem; color: var(--muted); }
+  .best:empty { display: none; }
+  .review { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 16px; display: grid; gap: 10px; }
+  .review h2 { font-family: var(--serif); color: var(--green); font-size: 1.2rem; }
+  .review ol { margin: 0; padding-left: 1.2em; display: grid; gap: 12px; }
+  .review li::marker { color: var(--gold); font-weight: 700; }
+  .review li p { font-size: .92rem; }
+  .review li .ans { font-weight: 700; color: var(--green); }
+  .review li .why { color: var(--muted); }
+
   /* ---------- Book ---------- */
   .book-card { background: var(--green); color: #fff; border-radius: 18px; padding: 22px 18px; display: grid; gap: 12px; position: relative; }
   .book-card::before { content: ""; position: absolute; inset: 7px; border: 1.5px solid var(--gold-light); border-radius: 13px; pointer-events: none; opacity: .7; }
@@ -309,9 +325,19 @@
       <h1 id="practice-title" data-t-html="practiceTitle"></h1>
       <p class="lede" data-t="practiceLede"></p>
     </div>
+    <div class="topics" role="group" id="topics" aria-label="Topic">
+      <button type="button" data-topic="all"></button>
+      <button type="button" data-topic="jokers"></button>
+      <button type="button" data-topic="charleston"></button>
+      <button type="button" data-topic="calling"></button>
+      <button type="button" data-topic="paying"></button>
+      <button type="button" data-topic="mistakes"></button>
+      <button type="button" data-topic="tiles"></button>
+    </div>
     <div class="drill-bar"><span id="drill-count" aria-live="polite"></span><div class="meter" aria-hidden="true"><i id="drill-meter"></i></div><span id="drill-score"></span></div>
 
     <div class="card" id="drill-card">
+      <span class="topic-tag" id="drill-topic"></span>
       <p class="q" id="drill-q"></p>
       <div class="tiles-row" id="drill-tiles" aria-hidden="true"></div>
       <div class="answers">
@@ -326,7 +352,13 @@
       <p class="kicker" data-t="doneKicker"></p>
       <p class="big" id="done-score"></p>
       <p id="done-msg"></p>
+      <p class="best" id="done-best"></p>
       <button class="btn" type="button" id="drill-again"></button>
+    </div>
+
+    <div class="review" id="drill-review" hidden>
+      <h2 data-t="reviewTitle"></h2>
+      <ol id="review-list"></ol>
     </div>
   </section>
 
@@ -383,13 +415,16 @@
   const T = {
     en: {
       tabCheat: 'Cheat sheet', tabPractice: 'Practice', tabBook: 'Book',
-      practiceKicker: 'Joker drill', practiceTitle: 'Can a Joker go <em>there?</em>',
-      practiceLede: 'Answer yes or no. Each answer explains the rule, so you learn as you go.',
+      practiceKicker: 'Practice', practiceTitle: 'Know your <em>table rules</em>',
+      practiceLede: 'Pick a topic and answer yes or no. Each round is 10 questions, and every answer explains the rule.',
+      topics: { all: 'Mixed', jokers: 'Jokers', charleston: 'Charleston', calling: 'Calling', paying: 'Winning & paying', mistakes: 'Mistakes', tiles: 'Tiles & setup' },
+      reviewTitle: 'Review what you missed', yourAnswer: a => `You said ${a}.`, correctAnswer: a => `Answer: ${a}.`,
+      best: (b, n) => `Your best in this topic: ${b}/${n}`, newBest: 'New personal best!',
       yes: 'Yes', no: 'No', next: 'Next question', finish: 'See my score',
       right: 'Correct!', wrong: 'Not quite.', answerYes: 'The answer is yes.', answerNo: 'The answer is no.',
       count: (i, n) => `Question ${i} of ${n}`, score: s => `${s} right`,
-      doneKicker: 'Drill complete', again: 'Practice again',
-      doneMsg: (s, n) => s === n ? 'Perfect round. You know your Jokers.' : s >= n * .75 ? 'Great work. Review the ones you missed and try again.' : 'Good start. Run it again and the rules will stick.',
+      doneKicker: 'Round complete', again: 'New round',
+      doneMsg: (s, n) => s === n ? 'Perfect round. You know these rules cold.' : s >= n * .75 ? 'Great work. Review the ones you missed below.' : 'Good start. Read the rules you missed below, then try another round.',
       bookKicker: 'Classes with Luli', bookTitle: 'Book a mahjong <em>class</em>',
       how1t: 'Pick a day and start time.', how1: 'Only open times show. Every class runs 3 hours, Pacific time.',
       how2t: 'Add your details.', how2: 'Your name and phone, then in Notes: the class type and how many people.',
@@ -421,13 +456,16 @@
     },
     es: {
       tabCheat: 'Guía', tabPractice: 'Practicar', tabBook: 'Reservar',
-      practiceKicker: 'Práctica de Jokers', practiceTitle: '¿Puede ir un Joker <em>ahí?</em>',
-      practiceLede: 'Responde sí o no. Cada respuesta explica la regla para que aprendas mientras juegas.',
+      practiceKicker: 'Práctica', practiceTitle: 'Domina las <em>reglas</em>',
+      practiceLede: 'Elige un tema y responde sí o no. Cada ronda tiene 10 preguntas, y cada respuesta explica la regla.',
+      topics: { all: 'Mixto', jokers: 'Jokers', charleston: 'Charleston', calling: 'Pedir fichas', paying: 'Ganar y pagar', mistakes: 'Errores', tiles: 'Fichas y muro' },
+      reviewTitle: 'Repasa lo que fallaste', yourAnswer: a => `Respondiste ${a}.`, correctAnswer: a => `Respuesta: ${a}.`,
+      best: (b, n) => `Tu mejor resultado en este tema: ${b}/${n}`, newBest: '¡Nuevo récord personal!',
       yes: 'Sí', no: 'No', next: 'Siguiente pregunta', finish: 'Ver mi puntuación',
       right: '¡Correcto!', wrong: 'No exactamente.', answerYes: 'La respuesta es sí.', answerNo: 'La respuesta es no.',
       count: (i, n) => `Pregunta ${i} de ${n}`, score: s => `${s} bien`,
-      doneKicker: 'Práctica terminada', again: 'Practicar otra vez',
-      doneMsg: (s, n) => s === n ? 'Ronda perfecta. Dominas los Jokers.' : s >= n * .75 ? 'Muy bien. Repasa las que fallaste y vuelve a intentarlo.' : 'Buen comienzo. Repítela y las reglas se quedarán.',
+      doneKicker: 'Ronda terminada', again: 'Nueva ronda',
+      doneMsg: (s, n) => s === n ? 'Ronda perfecta. Dominas estas reglas.' : s >= n * .75 ? 'Muy bien. Repasa abajo las que fallaste.' : 'Buen comienzo. Lee abajo las reglas que fallaste y prueba otra ronda.',
       bookKicker: 'Clases con Luli', bookTitle: 'Reserva una <em>clase</em>',
       how1t: 'Elige un día y una hora.', how1: 'Solo aparecen los horarios libres. Cada clase dura 3 horas, hora del Pacífico.',
       how2t: 'Agrega tus datos.', how2: 'Tu nombre y teléfono; en Notas, el tipo de clase y cuántas personas.',
@@ -475,7 +513,7 @@
     document.querySelectorAll('[data-t-html]').forEach(el => { el.innerHTML = T[lang][el.dataset.tHtml]; });
     $('ans-yes').textContent = T[lang].yes; $('ans-no').textContent = T[lang].no;
     $('drill-again').textContent = T[lang].again; $('install-close').textContent = T[lang].close; $('install-btn').textContent = T[lang].installBtn;
-    renderInstall(); renderQuestion(); if (!$('drill-done').hidden) renderDone();
+    renderInstall(); renderTopics(); renderQuestion(); if (!$('drill-done').hidden) renderDone();
     $('cal-note').textContent = T[lang][CALS[currentCal].note];
     if (pendingEmail) $('code-label').textContent = T[lang].codeLabel(pendingEmail);
     $('account-email').textContent = session ? T[lang].signedInAs(session.email) : '';
@@ -528,12 +566,33 @@
   addEventListener('hashchange', route);
 
   // ---------- Joker drill ----------
-  let order = [], pos = 0, score = 0, answered = false;
+  const ROUND = 10;
+  let order = [], pos = 0, score = 0, answered = false, given = [], topic = store.get('mjl-topic') || 'all', newBest = false;
   const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
-  function startDrill() { order = shuffle(Q.map((_, i) => i)); pos = 0; score = 0; answered = false; $('drill-done').hidden = true; $('drill-card').hidden = false; renderQuestion(); }
+  if (!T.en.topics[topic]) topic = 'all';
+  const pool = () => Q.map((q, i) => i).filter(i => topic === 'all' || (Q[i].topic || 'jokers') === topic);
+  function bestKey() { return 'mjl-best-' + topic; }
+  function startDrill() {
+    order = shuffle(pool()).slice(0, ROUND); pos = 0; score = 0; answered = false; given = []; newBest = false;
+    $('drill-done').hidden = true; $('drill-review').hidden = true; $('drill-card').hidden = !order.length;
+    renderTopics(); renderQuestion();
+  }
+  function renderTopics() {
+    document.querySelectorAll('[data-topic]').forEach(b => {
+      const k = b.dataset.topic, n = Q.filter(q => k === 'all' || (q.topic || 'jokers') === k).length;
+      b.setAttribute('aria-pressed', String(k === topic));
+      b.innerHTML = '';
+      b.append(T[lang].topics[k]);
+      if (n) { const s = document.createElement('small'); s.textContent = k === 'all' ? '' : n; if (s.textContent) b.append(s); }
+    });
+  }
+  document.querySelectorAll('[data-topic]').forEach(b => b.addEventListener('click', () => {
+    topic = b.dataset.topic; store.set('mjl-topic', topic); startDrill();
+  }));
   function renderQuestion() {
     if (!order.length) return;
     const q = Q[order[pos]], t = T[lang], n = order.length;
+    $('drill-topic').textContent = t.topics[q.topic || 'jokers'];
     $('drill-q').textContent = q[lang][0];
     $('drill-tiles').innerHTML = q.tiles.map(([v, k, s]) => `<span class="t ${k}">${v}${s ? `<small>${s}</small>` : ''}</span>`).join('');
     $('drill-count').textContent = t.count(pos + 1, n);
@@ -552,19 +611,39 @@
   }
   function answer(val) {
     if (answered) return;
-    answered = true; lastRight = val === Q[order[pos]].a; if (lastRight) score++;
+    answered = true; given[pos] = val; lastRight = val === Q[order[pos]].a; if (lastRight) score++;
     renderQuestion(); $('drill-next').focus();
   }
   function renderDone() {
     const n = order.length;
     $('done-score').textContent = `${score}/${n}`;
     $('done-msg').textContent = T[lang].doneMsg(score, n);
+    const best = Number(store.get(bestKey()) || 0);
+    $('done-best').textContent = newBest ? T[lang].newBest : best ? T[lang].best(best, n) : '';
+    // What you missed, with the rule, so the round teaches something
+    const t = T[lang], yn = v => (v ? t.yes : t.no).toLowerCase();
+    const missed = order.map((qi, i) => ({ q: Q[qi], g: given[i] })).filter(m => m.g !== m.q.a);
+    $('drill-review').hidden = !missed.length;
+    const list = $('review-list'); list.innerHTML = '';
+    missed.forEach(m => {
+      const li = document.createElement('li');
+      const p1 = document.createElement('p'); p1.textContent = m.q[lang][0];
+      const p2 = document.createElement('p'); p2.className = 'ans'; p2.textContent = t.correctAnswer(yn(m.q.a)) + ' ' + t.yourAnswer(yn(m.g));
+      const p3 = document.createElement('p'); p3.className = 'why'; p3.textContent = m.q[lang][1];
+      li.append(p1, p2, p3); list.append(li);
+    });
+  }
+  function finishRound() {
+    const best = Number(store.get(bestKey()) || 0);
+    newBest = score > best && best > 0;
+    if (score > best) store.set(bestKey(), String(score));
+    $('drill-card').hidden = true; $('drill-done').hidden = false; $('drill-meter').style.width = '100%'; renderDone();
   }
   $('ans-yes').addEventListener('click', () => answer(true));
   $('ans-no').addEventListener('click', () => answer(false));
   $('drill-next').addEventListener('click', () => {
     if (pos < order.length - 1) { pos++; answered = false; renderQuestion(); $('drill-q').scrollIntoView({ block: 'nearest' }); }
-    else { $('drill-card').hidden = true; $('drill-done').hidden = false; $('drill-meter').style.width = '100%'; renderDone(); }
+    else finishRound();
   });
   $('drill-again').addEventListener('click', startDrill);
 
@@ -623,7 +702,7 @@
     startDrill();
   }
   async function fetchContent() {
-    const res = await fetch(SB + '/storage/v1/object/authenticated/app/content.json', { headers: { apikey: KEY, Authorization: 'Bearer ' + session.access }, cache: 'no-store' });
+    const res = await fetch(SB + '/storage/v1/object/authenticated/app/content-v2.json', { headers: { apikey: KEY, Authorization: 'Bearer ' + session.access }, cache: 'no-store' });
     if (res.ok) { const c = await res.json(); store.set('mjl-content', JSON.stringify(c)); return c; }
     if (res.status >= 400 && res.status < 500) return null; // not on the approved list any more
     throw new Error('content ' + res.status);
