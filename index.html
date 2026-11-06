@@ -176,6 +176,19 @@
   .book-card h2 { font-family: var(--serif); font-style: italic; font-size: 1.5rem; line-height: 1.15; }
   .book-card p { color: rgba(255,255,255,.88); }
   .book-card .btn { background: var(--cream); color: var(--green); border-color: var(--cream); box-shadow: 0 4px 0 var(--gold); position: relative; }
+  .how { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; counter-reset: how; }
+  .how li { counter-increment: how; position: relative; background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px 10px 48px; display: grid; gap: 2px; font-size: .9rem; color: var(--muted); }
+  .how li::before { content: counter(how); position: absolute; left: 12px; top: 10px; width: 26px; height: 26px; border-radius: 50%; background: var(--green); color: #fff; display: grid; place-items: center; font-weight: 700; font-size: .85rem; }
+  .how b { color: var(--ink); }
+  .seg { display: grid; grid-template-columns: repeat(3, 1fr); background: #fff; border: 1.5px solid var(--gold); border-radius: 12px; padding: 3px; gap: 3px; }
+  .seg button { border: 0; background: transparent; border-radius: 9px; padding: 9px 4px; font-weight: 600; font-size: .88rem; color: var(--green); cursor: pointer; }
+  .seg button[aria-selected="true"] { background: var(--green); color: #fff; }
+  .cal-card { background: #fff; border: 1px solid var(--line); border-radius: 16px; overflow: hidden; min-height: 200px; position: relative; }
+  .cal-loading { position: absolute; inset: 0 0 auto; padding: 40px 16px; text-align: center; color: var(--muted); font-size: .92rem; background: #fff; z-index: 1; }
+  .cal-card iframe { display: block; }
+  .cal-offline { padding: 28px 18px; display: grid; gap: 6px; text-align: center; color: var(--muted); }
+  .cal-offline b { color: var(--ink); }
+  .linkbtn[href] { justify-self: center; }
   .contact { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .phone { text-align: center; font-size: .92rem; color: var(--muted); }
   .phone b { color: var(--ink); user-select: all; }
@@ -520,11 +533,23 @@
       <p class="kicker" data-t="bookKicker"></p>
       <h1 id="book-title" data-t-html="bookTitle"></h1>
     </div>
-    <div class="book-card">
-      <h2 data-t="bookCardTitle"></h2>
-      <p data-t="bookCardText"></p>
-      <a class="btn block" href="https://mahjonglandsandiego.com/calendar" target="_blank" rel="noopener" data-t="bookBtn"></a>
+    <ol class="how">
+      <li><b data-t="how1t"></b><span data-t="how1"></span></li>
+      <li><b data-t="how2t"></b><span data-t="how2"></span></li>
+      <li><b data-t="how3t"></b><span data-t="how3"></span></li>
+    </ol>
+    <div class="seg" role="tablist" aria-label="Calendar">
+      <button type="button" role="tab" data-cal="class" aria-selected="true" data-t="calClass"></button>
+      <button type="button" role="tab" data-cal="tue" aria-selected="false" data-t="calTue"></button>
+      <button type="button" role="tab" data-cal="thu" aria-selected="false" data-t="calThu"></button>
     </div>
+    <p class="note" id="cal-note"></p>
+    <div class="cal-card">
+      <div class="cal-loading" id="cal-loading" data-t="calLoading"></div>
+      <div class="cal-offline" id="cal-offline" hidden><b data-t="offlineTitle"></b><span data-t="offlineText"></span></div>
+      <iframe id="mjc_app_cal" title="Book a mahjong class" scrolling="no" style="width:100%;border:none;overflow:hidden;min-height:720px"></iframe>
+    </div>
+    <a class="linkbtn" href="https://mahjonglandsandiego.com/calendar" target="_blank" rel="noopener" data-t="calBrowser"></a>
     <div class="contact">
       <a class="btn ghost" href="sms:+16192086972" data-t="textBtn"></a>
       <a class="btn ghost" href="tel:+16192086972" data-t="callBtn"></a>
@@ -562,10 +587,16 @@
       doneKicker: 'Drill complete', again: 'Practice again',
       doneMsg: (s, n) => s === n ? 'Perfect round. You know your Jokers.' : s >= n * .75 ? 'Great work. Review the ones you missed and try again.' : 'Good start. Run it again and the rules will stick.',
       bookKicker: 'Classes with Luli', bookTitle: 'Book a mahjong <em>class</em>',
-      bookCardTitle: 'See open class times', bookCardText: 'Pick a day and start time on the class calendar and send your request. Every class is 3 hours.',
-      bookBtn: 'Open the class calendar', textBtn: 'Text Luli', callBtn: 'Call Luli', phoneLabel: 'Call or text:',
+      how1t: 'Pick a day and start time.', how1: 'Only open times show. Every class runs 3 hours, Pacific time.',
+      how2t: 'Add your details.', how2: 'Your name and phone, then in Notes: the class type and how many people.',
+      how3t: 'Luli confirms by email.', how3: 'Your time is held while she checks it.',
+      calClass: 'Classes', calTue: 'Tue Club', calThu: 'Thu Club',
+      noteClass: 'Tap a green day to see its open start times.',
+      noteClub: 'Mahjong Club: play with Luli on club mornings, 9 AM to 2 PM. One sign-up covers both days of your club.',
+      calLoading: 'Loading the calendar…', offlineTitle: 'You\'re offline.', offlineText: 'Booking needs an internet connection. The cheat sheet and practice still work.',
+      calBrowser: 'Having trouble? Open the calendar in your browser', textBtn: 'Text Luli', callBtn: 'Call Luli', phoneLabel: 'Call or text:',
       linkBeginner: 'Beginner lessons', linkPrivate: 'Private lessons at home', linkParties: 'Mahjong parties', linkSite: 'Mahjong Land SD website',
-      bookNote: 'Booking opens on the Mahjong Land SD website and needs an internet connection.',
+      bookNote: 'Calendars are run by Mahjong Land SD through GoHighLevel. Luli confirms every booking by email.',
       installAndroid: 'Add this app to your home screen for quick access at the table.', installBtn: 'Install',
       installIOS: 'Add to your home screen: tap the Share button, then "Add to Home Screen."', close: 'Not now'
     },
@@ -579,10 +610,16 @@
       doneKicker: 'Práctica terminada', again: 'Practicar otra vez',
       doneMsg: (s, n) => s === n ? 'Ronda perfecta. Dominas los Jokers.' : s >= n * .75 ? 'Muy bien. Repasa las que fallaste y vuelve a intentarlo.' : 'Buen comienzo. Repítela y las reglas se quedarán.',
       bookKicker: 'Clases con Luli', bookTitle: 'Reserva una <em>clase</em>',
-      bookCardTitle: 'Ver horarios de clases', bookCardText: 'Elige un día y una hora en el calendario de clases y envía tu solicitud. Cada clase dura 3 horas.',
-      bookBtn: 'Abrir el calendario de clases', textBtn: 'Escríbele a Luli', callBtn: 'Llamar a Luli', phoneLabel: 'Llama o escribe:',
+      how1t: 'Elige un día y una hora.', how1: 'Solo aparecen los horarios libres. Cada clase dura 3 horas, hora del Pacífico.',
+      how2t: 'Agrega tus datos.', how2: 'Tu nombre y teléfono; en Notas, el tipo de clase y cuántas personas.',
+      how3t: 'Luli confirma por email.', how3: 'Tu horario queda reservado mientras ella lo revisa.',
+      calClass: 'Clases', calTue: 'Club mar.', calThu: 'Club jue.',
+      noteClass: 'Toca un día en verde para ver sus horarios libres. El calendario está en inglés.',
+      noteClub: 'Mahjong Club: juega con Luli en las mañanas del club, de 9 AM a 2 PM. Una inscripción cubre los dos días de tu club. El calendario está en inglés.',
+      calLoading: 'Cargando el calendario…', offlineTitle: 'No tienes conexión.', offlineText: 'Para reservar necesitas internet. La guía y la práctica siguen funcionando.',
+      calBrowser: '¿Problemas? Abre el calendario en tu navegador', textBtn: 'Escríbele a Luli', callBtn: 'Llamar a Luli', phoneLabel: 'Llama o escribe:',
       linkBeginner: 'Clases para principiantes', linkPrivate: 'Clases privadas en casa', linkParties: 'Fiestas de mahjong', linkSite: 'Sitio web de Mahjong Land SD',
-      bookNote: 'La reserva se abre en el sitio web de Mahjong Land SD (en inglés) y necesita conexión a internet.',
+      bookNote: 'Los calendarios los gestiona Mahjong Land SD con GoHighLevel. Luli confirma cada reserva por email.',
       installAndroid: 'Agrega esta app a tu pantalla de inicio para tenerla a mano en la mesa.', installBtn: 'Instalar',
       installIOS: 'Agrégala a tu pantalla de inicio: toca el botón Compartir y luego "Agregar a inicio".', close: 'Ahora no'
     }
@@ -657,6 +694,7 @@
     $('ans-yes').textContent = T[lang].yes; $('ans-no').textContent = T[lang].no;
     $('drill-again').textContent = T[lang].again; $('install-close').textContent = T[lang].close; $('install-btn').textContent = T[lang].installBtn;
     renderInstall(); renderQuestion(); if (!$('drill-done').hidden) renderDone();
+    $('cal-note').textContent = T[lang][CALS[currentCal].note];
   }
   document.querySelectorAll('[data-set-lang]').forEach(b => b.addEventListener('click', () => { lang = b.dataset.setLang; store.set('mjl-lang', lang); applyLang(); }));
 
@@ -671,7 +709,37 @@
     VIEWS.forEach(v => { $('view-' + v).hidden = v !== view; });
     document.querySelectorAll('[data-tab]').forEach(a => { if (a.dataset.tab === view) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
     if (target) target.scrollIntoView(); else window.scrollTo(0, 0);
+    if (view === 'book') showCal(currentCal);
   }
+
+  // ---------- Booking calendars (GoHighLevel widgets, loaded only when the Book tab opens) ----------
+  const CALS = {
+    class: { src: 'https://api.leadconnectorhq.com/widget/booking/Qx9P0qUA6a6qgeyRPjai', note: 'noteClass', title: 'Book a mahjong class' },
+    tue: { src: 'https://api.leadconnectorhq.com/widget/bookings/tuesday-club', note: 'noteClub', title: 'Join the Tuesday Mahjong Club' },
+    thu: { src: 'https://api.leadconnectorhq.com/widget/bookings/thursday-club', note: 'noteClub', title: 'Join the Thursday Mahjong Club' }
+  };
+  let currentCal = 'class', embedLoaded = false;
+  const frame = $('mjc_app_cal');
+  frame.addEventListener('load', () => { if (frame.getAttribute('src')) $('cal-loading').hidden = true; });
+  function showCal(key) {
+    currentCal = key;
+    document.querySelectorAll('[data-cal]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.cal === key)));
+    $('cal-note').textContent = T[lang][CALS[key].note];
+    const offline = !navigator.onLine;
+    $('cal-offline').hidden = !offline;
+    frame.hidden = offline;
+    if (offline) { $('cal-loading').hidden = true; return; }
+    if (frame.getAttribute('src') !== CALS[key].src) {
+      $('cal-loading').hidden = false;
+      frame.title = CALS[key].title;
+      frame.src = CALS[key].src;
+    }
+    // GoHighLevel's embed script sizes the calendar to its content
+    if (!embedLoaded) { embedLoaded = true; const s = document.createElement('script'); s.src = 'https://link.msgsndr.com/js/form_embed.js'; document.body.appendChild(s); }
+  }
+  document.querySelectorAll('[data-cal]').forEach(b => b.addEventListener('click', () => showCal(b.dataset.cal)));
+  addEventListener('online', () => { if (!$('view-book').hidden) showCal(currentCal); });
+  addEventListener('offline', () => { if (!$('view-book').hidden) showCal(currentCal); });
   addEventListener('hashchange', route);
 
   // ---------- Joker drill ----------
