@@ -204,6 +204,10 @@
   .cal-card iframe { display: block; }
   .cal-offline { padding: 28px 18px; display: grid; gap: 6px; text-align: center; color: var(--muted); }
   .cal-offline b { color: var(--ink); }
+  .cal-full { padding: 32px 20px; display: grid; gap: 10px; justify-items: center; text-align: center; color: var(--muted); }
+  .cal-full h3 { margin: 0; font-family: var(--serif, Georgia, serif); font-size: 1.35rem; color: var(--green); }
+  .cal-full p { margin: 0; max-width: 34ch; }
+  .cal-full .btn { margin-top: 4px; }
   .linkbtn[href] { justify-self: center; }
   .contact { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .phone { text-align: center; font-size: .92rem; color: var(--muted); }
@@ -382,6 +386,11 @@
     <div class="cal-card">
       <div class="cal-loading" id="cal-loading" data-t="calLoading"></div>
       <div class="cal-offline" id="cal-offline" hidden><b data-t="offlineTitle"></b><span data-t="offlineText"></span></div>
+      <div class="cal-full" id="cal-full" hidden>
+        <h3 data-t="fullTitle"></h3>
+        <p data-t="fullText"></p>
+        <a class="btn" id="cal-waitlist" href="sms:+16192086972" data-t="fullBtn"></a>
+      </div>
       <iframe id="mjc_app_cal" title="Book a mahjong class" scrolling="no" style="width:100%;border:none;overflow:hidden;min-height:720px"></iframe>
     </div>
     <a class="linkbtn" href="https://mahjonglandsandiego.com/calendar" target="_blank" rel="noopener" data-t="calBrowser"></a>
@@ -433,6 +442,8 @@
       noteClass: 'Tap a green day to see its open start times.',
       noteClub: 'Mahjong Club: play with Luli on club mornings, 9 AM to 2 PM. One sign-up covers both days of your club.',
       calLoading: 'Loading the calendar…', offlineTitle: 'You\'re offline.', offlineText: 'Booking needs an internet connection. The cheat sheet and practice still work.',
+      fullTitle: 'This club is full', fullText: 'Join the waitlist and Luli will reach out if a seat opens up.', fullBtn: 'Text Luli to join the waitlist',
+      waitlistSms: club => `Hi Luli, please add me to the waitlist for the ${club === 'tue' ? 'Tuesday' : 'Thursday'} Mahjong Club.`,
       calBrowser: 'Having trouble? Open the calendar in your browser', textBtn: 'Text Luli', callBtn: 'Call Luli', phoneLabel: 'Call or text:',
       linkBeginner: 'Beginner lessons', linkPrivate: 'Private lessons at home', linkParties: 'Mahjong parties', linkSite: 'Mahjong Land SD website',
       bookNote: 'Calendars are run by Mahjong Land SD through GoHighLevel. Luli confirms every booking by email.',
@@ -474,6 +485,8 @@
       noteClass: 'Toca un día en verde para ver sus horarios libres. El calendario está en inglés.',
       noteClub: 'Mahjong Club: juega con Luli en las mañanas del club, de 9 AM a 2 PM. Una inscripción cubre los dos días de tu club. El calendario está en inglés.',
       calLoading: 'Cargando el calendario…', offlineTitle: 'No tienes conexión.', offlineText: 'Para reservar necesitas internet. La guía y la práctica siguen funcionando.',
+      fullTitle: 'Este club está lleno', fullText: 'Anótate en la lista de espera y Luli te avisará si se libera un lugar.', fullBtn: 'Escríbele a Luli para la lista de espera',
+      waitlistSms: club => `Hola Luli, por favor agrégame a la lista de espera del Mahjong Club del ${club === 'tue' ? 'martes' : 'jueves'}.`,
       calBrowser: '¿Problemas? Abre el calendario en tu navegador', textBtn: 'Escríbele a Luli', callBtn: 'Llamar a Luli', phoneLabel: 'Llama o escribe:',
       linkBeginner: 'Clases para principiantes', linkPrivate: 'Clases privadas en casa', linkParties: 'Fiestas de mahjong', linkSite: 'Sitio web de Mahjong Land SD',
       bookNote: 'Los calendarios los gestiona Mahjong Land SD con GoHighLevel. Luli confirma cada reserva por email.',
@@ -515,6 +528,7 @@
     $('drill-again').textContent = T[lang].again; $('install-close').textContent = T[lang].close; $('install-btn').textContent = T[lang].installBtn;
     renderInstall(); renderTopics(); renderQuestion(); if (!$('drill-done').hidden) renderDone();
     $('cal-note').textContent = T[lang][CALS[currentCal].note];
+    if (!$('cal-full').hidden) showFull(currentCal);
     if (pendingEmail) $('code-label').textContent = T[lang].codeLabel(pendingEmail);
     $('account-email').textContent = session ? T[lang].signedInAs(session.email) : '';
     if (msgKey) showMsg(msgKey, msgOk);
@@ -536,22 +550,55 @@
   }
 
   // ---------- Booking calendars (GoHighLevel widgets, loaded only when the Book tab opens) ----------
+  // The UTM marker lets the GoHighLevel workflow "Booking source tag (app or website)" tag app bookings "booked in app"
+  const FROM_APP = '?utm_source=mahjong-app&utm_medium=mahjong-app&utm_campaign=mahjong-app';
   const CALS = {
-    class: { src: 'https://api.leadconnectorhq.com/widget/booking/Qx9P0qUA6a6qgeyRPjai', note: 'noteClass', title: 'Book a mahjong class' },
-    tue: { src: 'https://api.leadconnectorhq.com/widget/bookings/tuesday-club', note: 'noteClub', title: 'Join the Tuesday Mahjong Club' },
-    thu: { src: 'https://api.leadconnectorhq.com/widget/bookings/thursday-club', note: 'noteClub', title: 'Join the Thursday Mahjong Club' }
+    class: { src: 'https://api.leadconnectorhq.com/widget/booking/Qx9P0qUA6a6qgeyRPjai' + FROM_APP, note: 'noteClass', title: 'Book a mahjong class' },
+    tue: { src: 'https://api.leadconnectorhq.com/widget/bookings/tuesday-club' + FROM_APP, note: 'noteClub', title: 'Join the Tuesday Mahjong Club', id: 'hvtRrDz5glQ7F5psBGN6' },
+    thu: { src: 'https://api.leadconnectorhq.com/widget/bookings/thursday-club' + FROM_APP, note: 'noteClub', title: 'Join the Thursday Mahjong Club', id: '6OYaDwn4FGTtcOn38TW9' }
   };
   let currentCal = 'class', embedLoaded = false;
   const frame = $('mjc_app_cal');
   frame.addEventListener('load', () => { if (frame.getAttribute('src')) $('cal-loading').hidden = true; });
-  function showCal(key) {
+
+  // Club full = GoHighLevel has no open seats in the next 30 days. If the check fails, show the calendar as usual.
+  const fullCache = {};
+  async function clubFull(key) {
+    const id = CALS[key].id;
+    if (!id) return false;
+    if (key in fullCache) return fullCache[key];
+    try {
+      const s = Date.now(), e = s + 30 * 864e5;
+      const r = await fetch(`https://backend.leadconnectorhq.com/calendars/${id}/free-slots?startDate=${s}&endDate=${e}&timezone=America%2FLos_Angeles`);
+      if (!r.ok) return false;
+      const days = Object.keys(await r.json()).filter(k => /^\d{4}-\d{2}-\d{2}$/.test(k));
+      return (fullCache[key] = days.length === 0);
+    } catch { return false; }
+  }
+  function showFull(key) {
+    $('cal-full').hidden = false;
+    frame.hidden = true;
+    $('cal-loading').hidden = true;
+    $('cal-waitlist').href = 'sms:+16192086972?&body=' + encodeURIComponent(T[lang].waitlistSms(key));
+  }
+
+  async function showCal(key) {
     currentCal = key;
     document.querySelectorAll('[data-cal]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.cal === key)));
     $('cal-note').textContent = T[lang][CALS[key].note];
     const offline = !navigator.onLine;
     $('cal-offline').hidden = !offline;
+    $('cal-full').hidden = true;
     frame.hidden = offline;
     if (offline) { $('cal-loading').hidden = true; return; }
+    if (CALS[key].id) {
+      $('cal-loading').hidden = false;
+      const full = await clubFull(key);
+      if (currentCal !== key) return; // tapped another tab meanwhile
+      if (full) { showFull(key); return; }
+      frame.hidden = false;
+      if (frame.getAttribute('src') === CALS[key].src) $('cal-loading').hidden = true;
+    }
     if (frame.getAttribute('src') !== CALS[key].src) {
       $('cal-loading').hidden = false;
       frame.title = CALS[key].title;

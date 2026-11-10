@@ -1,5 +1,5 @@
 // Mahjong Land SD app: offline cheat sheet and practice.
-const VERSION = 'f0ff654fce';
+const VERSION = '11440f0b37';
 const CACHE = `mjl-${VERSION}`;
 const FONTS = 'mjl-fonts';
 const SHELL = ["/", "/index.html", "/manifest.webmanifest", "/icons/icon-192.png", "/icons/icon-512.png", "/icons/icon-maskable-512.png", "/icons/apple-touch-icon.png"];
