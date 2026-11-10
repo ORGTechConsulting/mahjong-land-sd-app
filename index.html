@@ -281,6 +281,7 @@
     </form>
     <p class="gate-msg" id="gate-msg" role="alert" aria-live="assertive"></p>
     <p class="note" data-t-html="gateHelp"></p>
+    <a class="linkbtn privacy-link" href="https://mahjonglandsandiego.com/privacy" target="_blank" rel="noopener" data-t="privacy"></a>
   </div>
 </section>
 
@@ -407,6 +408,7 @@
     </div>
     <p class="note" data-t="bookNote"></p>
     <p class="account"><span id="account-email"></span><button class="linkbtn" type="button" id="sign-out" data-t="signOut"></button></p>
+    <p class="account"><a class="linkbtn privacy-link" href="https://mahjonglandsandiego.com/privacy" target="_blank" rel="noopener" data-t="privacy"></a></p>
   </section>
 </main>
 
@@ -463,7 +465,7 @@
       revoked: 'Your access has ended. Text Luli at (619) 208-6972 if you think this is a mistake.',
       loadingContent: 'Loading your cheat sheet…',
       gateHelp: 'Not a student yet? <a href="https://mahjonglandsandiego.com/calendar" target="_blank" rel="noopener">Book a class</a> or text Luli at <a href="sms:+16192086972">(619) 208-6972</a>.',
-      signOut: 'Sign out', signedInAs: e => `Signed in as ${e}.`
+      signOut: 'Sign out', signedInAs: e => `Signed in as ${e}.`, privacy: 'Privacy policy'
     },
     es: {
       tabCheat: 'Guía', tabPractice: 'Practicar', tabBook: 'Reservar',
@@ -506,7 +508,7 @@
       revoked: 'Tu acceso terminó. Escríbele a Luli al (619) 208-6972 si crees que es un error.',
       loadingContent: 'Cargando tu guía…',
       gateHelp: '¿Todavía no eres alumno? <a href="https://mahjonglandsandiego.com/calendar" target="_blank" rel="noopener">Reserva una clase</a> o escríbele a Luli al <a href="sms:+16192086972">(619) 208-6972</a>.',
-      signOut: 'Cerrar sesión', signedInAs: e => `Sesión iniciada como ${e}.`
+      signOut: 'Cerrar sesión', signedInAs: e => `Sesión iniciada como ${e}.`, privacy: 'Política de privacidad'
     }
   };
 
@@ -524,6 +526,7 @@
     document.querySelectorAll('[data-set-lang]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.setLang === lang)));
     document.querySelectorAll('[data-t]').forEach(el => { el.textContent = T[lang][el.dataset.t]; });
     document.querySelectorAll('[data-t-html]').forEach(el => { el.innerHTML = T[lang][el.dataset.tHtml]; });
+    document.querySelectorAll('.privacy-link').forEach(a => { a.href = 'https://mahjonglandsandiego.com/privacy' + (lang === 'es' ? '?lang=es' : ''); });
     $('ans-yes').textContent = T[lang].yes; $('ans-no').textContent = T[lang].no;
     $('drill-again').textContent = T[lang].again; $('install-close').textContent = T[lang].close; $('install-btn').textContent = T[lang].installBtn;
     renderInstall(); renderTopics(); renderQuestion(); if (!$('drill-done').hidden) renderDone();
